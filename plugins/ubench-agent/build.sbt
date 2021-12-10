@@ -1,5 +1,11 @@
 lazy val renaissanceCore = RootProject(uri("../../renaissance-core"))
 
+lazy val ubenchAgent = {
+  val github = "git://github.com/D-iii-S/java-ubench-agent.git"
+  val commit = "5e8473dbc4d38948dc2d680b5fdf0775824ad40f"
+  RootProject(uri(s"${github}#$commit"))
+}
+
 lazy val pluginUbenchAgent = (project in file("."))
   .settings(
     name := "plugin-ubenchagent",
@@ -13,12 +19,11 @@ lazy val pluginUbenchAgent = (project in file("."))
       case PathList("org", "renaissance", _*) => MergeStrategy.discard
       case _ => MergeStrategy.singleOrError
     },
+    Compile / unmanagedSourceDirectories += (ubenchAgent / baseDirectory).value / "src" / "java",
     packageOptions := Seq(
       sbt.Package.ManifestAttributes(
         ("Renaissance-Plugin", "org.renaissance.plugins.ubenchagent.Main")
       )
     ),
   )
-  .dependsOn(
-    renaissanceCore
-  )
+  .dependsOn(renaissanceCore % "provided", ubenchAgent)

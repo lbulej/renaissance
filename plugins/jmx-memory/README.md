@@ -9,10 +9,10 @@ garbage collection execution via [GarbageCollectorMXBean](https://docs.oracle.co
 To build the plugin run the following command:
 
 ```shell
-../../tools/sbt/bin/sbt assembly
+../../tools/sbt/bin/sbt package
 ```
 
-The plugin shall be available as `target/plugin-jmxmemory-assembly-VER.jar`.
+The plugin shall be available as `target/plugin-jmxmemory-VER.jar`.
 
 ## Using the plugin
 
@@ -21,7 +21,7 @@ Note that we specify an output file as the counters are not visible on the stand
 
 ```shell
 java renaissance-gpl-0.13.0.jar \
-  --plugin plugin-jmxmemory-assembly-0.0.1.jar\
+  --plugin plugin-jmxmemory-0.0.1.jar\
   --json results.json \
   ...
 ```

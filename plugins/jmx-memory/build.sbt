@@ -6,19 +6,12 @@ lazy val pluginJMXTimers = (project in file("."))
     version := "0.0.1",
     crossPaths := false,
     autoScalaLibrary := false,
-    organization := (renaissanceCore / organization).value,
-    assembly / assemblyMergeStrategy := {
-      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-      case PathList("org", "renaissance", "plugins", _*) => MergeStrategy.first
-      case PathList("org", "renaissance", _*) => MergeStrategy.discard
-      case _ => MergeStrategy.singleOrError
-    },
+    organization := "org.renaissance",
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     packageOptions := Seq(
       sbt.Package.ManifestAttributes(
         ("Renaissance-Plugin", "org.renaissance.plugins.jmxmemory.Main")
       )
     ),
   )
-  .dependsOn(
-    renaissanceCore
-  )
+  .dependsOn(renaissanceCore % "provided")

@@ -16,6 +16,6 @@ popd
 # Build the plugins
 for plugin_dir in jmx-timers ubench-agent; do
     pushd "plugins/$plugin_dir"
-    ci_sbt assembly
+    ci_sbt package
     popd
 done
