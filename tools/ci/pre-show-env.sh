@@ -3,7 +3,7 @@
 set -uoe pipefail
 
 set -x
-
+set
 java -version
 javac -version
 git --version || echo "Git not installed." >&2

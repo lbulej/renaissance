@@ -41,8 +41,16 @@ RENAISSANCE_JMH_JAR_CACHED="${CACHE_DIR}/$RENAISSANCE_JMH_JAR_NAME"
 RENAISSANCE_JMH_JAR="${RENAISSANCE_JMH_DIR}/$RENAISSANCE_JMH_JAR_NAME"
 
 ci_sbt() {
+	echo "OS type: $OSTYPE"
 	local TRUST_STORE="$ROOT_DIR/tools/jks/cacerts"
-	$ROOT_DIR/tools/sbt/bin/sbt "-J-Djavax.net.ssl.trustStore=$TRUST_STORE" "$@"
+	local SBT_SCRIPT="${ROOT_DIR}/tools/sbt/bin/sbt"
+	[ "$RUNNER_OS" = "Windows" ] && SBT_SCRIPT+=".bat"
+
+	"$SBT_SCRIPT" \
+		"-J-Djavax.net.ssl.trustStore=${TRUST_STORE}" \
+		"-J-Dsbt.boot.directory=${ROOT_DIR}/.cache/sbt/boot" \
+		"-J-Dsbt.coursier.home=${ROOT_DIR}/.cache/coursier" \
+		"$@"
 }
 
 cp_reflink() {

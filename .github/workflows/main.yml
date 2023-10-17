@@ -3,10 +3,11 @@ on:
   push:
     branches: [master]
   pull_request:
+
 jobs:
-  checks:
+  build:
     runs-on: ubuntu-latest
-    container: "renaissancebench/buildenv:v5-openjdk8"
+    container: "renaissancebench/buildenv:v5-openjdk17"
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -16,130 +17,56 @@ jobs:
       - name: Fix Git safe directory
         shell: bash
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Cache SBT
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.ivy2/cache
-            ~/.sbt
-            ~/.cache/coursier
-          key: ${{ runner.os }}-sbt-${{ hashFiles('build.sbt') }}
 
       - name: Check file encoding
         shell: bash
         run: tools/ci/check-encoding.sh
 
+      - name: Cache SBT native client
+        uses: actions/cache@v3
+        with:
+          key: sbt_client-${{ runner.os }}-${{ hashFiles('project/build.properties') }}
+          path: ~/.cache/sbt/boot/sbtn
+
+      - name: Cache SBT runtime jars
+        uses: actions/cache@v3
+        with:
+          key: sbt_runtime-${{ hashFiles('project/build.properties') }}
+          path: .cache/sbt/boot/scala-*
+
+      - name: Cache Coursier cache
+        uses: actions/cache@v3
+        with:
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
+          path: .cache/coursier
+
+      - name: Start SBT server
+        shell: bash
+        run: tools/ci/sbt-server-start.sh
+
       - name: Check source code formatting
         shell: bash
         run: tools/ci/check-formatting.sh
 
-      - name: Build the base bundle
+#      - name: Build both base & JMH bundles
+#        shell: bash
+#        run: tools/ci/build-both.sh
+
+#      - name: Check generated files are up-to-date
+#        shell: bash
+#        run: tools/ci/check-markdown.sh
+
+#      - name: Check JMH bundle
+#        shell: bash
+#        run: tools/ci/check-jmh.sh
+
+      - name: Stop SBT server
         shell: bash
-        run: tools/ci/build-base.sh
+        run: tools/ci/sbt-server-stop.sh
 
-      - name: Check generated files are up-to-date
-        shell: bash
-        run: tools/ci/check-markdown.sh
-
-  linux:
-    runs-on: ubuntu-latest
-    container: "renaissancebench/buildenv:v5-openjdk17"
-    continue-on-error: true
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fix Git safe directory
-        shell: bash
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Cache SBT
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.ivy2/cache
-            ~/.sbt
-            ~/.cache/coursier
-          key: ${{ runner.os }}-sbt-${{ hashFiles('build.sbt') }}
-
-      - name: Environment configuration
-        shell: bash
-        run: tools/ci/pre-show-env.sh
-
-      - name: Build both base & JMH bundles
-        shell: bash
-        run: tools/ci/build-both.sh
-
-      - name: Check JMH bundle
-        shell: bash
-        run: tools/ci/check-jmh.sh
-
-      - name: Run the suite
-        shell: bash
-        run: tools/ci/bench-base.sh
-
-      - name: Run the suite in standalone mode
-        shell: bash
-        run: tools/ci/bench-standalone.sh
-
-      - name: Run the suite with JMH
-        shell: bash
-        run: tools/ci/bench-jmh.sh
-
-  macos:
-    runs-on: macos-latest
-    continue-on-error: true
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fix Git safe directory
-        shell: bash
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Fetch JDK 17
-        run: |
-          aria2c -d ${{ runner.temp }} -o openjdk-17_macos-x64_bin.tar.gz https://download.java.net/java/GA/jdk17/0d483333a00540d886896bac774ff48b/35/GPL/openjdk-17_macos-x64_bin.tar.gz
-
-      - name: Setup JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: jdkfile
-          jdkFile: ${{ runner.temp }}/openjdk-17_macos-x64_bin.tar.gz
-
-      - name: Environment configuration
-        shell: bash
-        run: tools/ci/pre-show-env.sh
-
-      - name: Build both base & JMH bundles
-        shell: bash
-        run: tools/ci/build-both.sh
-
-      - name: Check JMH bundle
-        shell: bash
-        run: tools/ci/check-jmh.sh
-
-      - name: Dummy run and environment configuration
-        shell: bash
-        run: tools/ci/bench-show-env.sh
-
-      - name: Run the suite
-        shell: bash
-        run: tools/ci/bench-base.sh
-
-      - name: Run the suite in standalone mode
-        shell: bash
-        run: tools/ci/bench-standalone.sh
-
-      - name: Run the suite with JMH
-        shell: bash
-        run: tools/ci/bench-jmh.sh
+#      - name: Upload base bundle
+#        uses: actions/upload-artifact@v3
+#        with:
 
   windows:
     runs-on: windows-latest
@@ -169,225 +96,26 @@ jobs:
         shell: bash
         run: tools/ci/pre-show-env.sh
 
-      - name: Build both base & JMH bundles
-        shell: bash
-        run: tools/sbt/bin/sbt --batch 'renaissance/package;renaissanceJmh/package'
-
-      - name: Check JMH bundle
-        shell: bash
-        run: tools/ci/check-jmh.sh
-
-      - name: Dummy run and environment configuration
-        shell: bash
-        run: tools/ci/bench-show-env.sh
-
-      - name: Run the suite
-        shell: bash
-        run: tools/ci/bench-base.sh
-
-      - name: Run the suite in standalone mode
-        shell: bash
-        run: tools/ci/bench-standalone.sh
-
-      - name: Run the suite with JMH
-        shell: bash
-        run: tools/ci/bench-jmh.sh
-
-  plugins:
-    runs-on: ubuntu-latest
-    needs: linux
-    container: "renaissancebench/buildenv:v5-openjdk8-with-ant-gcc"
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fix Git safe directory
-        shell: bash
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Cache SBT
+      - name: Cache SBT native client
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.ivy2/cache
-            ~/.sbt
-            ~/.cache/coursier
-          key: ${{ runner.os }}-sbt-${{ hashFiles('build.sbt') }}
+          key: sbt_client-${{ runner.os }}-${{ hashFiles('project/build.properties') }}
+          path: ~/.cache/sbt/boot/sbtn
 
-      - name: Environment configuration
-        shell: bash
-        run: tools/ci/pre-show-env.sh
-
-      - name: Build base
-        shell: bash
-        run: tools/ci/build-base.sh
-
-      - name: Build plugins
-        shell: bash
-        run: tools/ci/build-plugins.sh
-
-      - name: Run the suite with all plugins
-        shell: bash
-        run: tools/ci/bench-plugins.sh
-
-  linux-jdks:
-    needs: linux
-    strategy:
-      matrix:
-        image:
-          - openjdk8
-          - openjdk11
-          - openjdk20
-          - openj9-openjdk8
-          - openj9-openjdk11
-          - openj9-openjdk17
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    container: "renaissancebench/buildenv:v5-${{ matrix.image }}"
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fix Git safe directory
-        shell: bash
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Cache SBT
+      - name: Cache SBT runtime jars
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.ivy2/cache
-            ~/.sbt
-            ~/.cache/coursier
-          key: ${{ runner.os }}-sbt-${{ hashFiles('build.sbt') }}
+          key: sbt_runtime-${{ hashFiles('project/build.properties') }}
+          enableCrossOsArchive: true
+          path: .cache/sbt/boot/scala-*
 
-      - name: Environment configuration
-        shell: bash
-        run: tools/ci/pre-show-env.sh
-
-      - name: Build base & JMH bundles
-        shell: bash
-        run: tools/ci/build-both.sh
-
-      - name: Check JMH bundle
-        shell: bash
-        run: tools/ci/check-jmh.sh
-
-      - name: Run the suite
-        shell: bash
-        run: tools/ci/bench-base.sh
-
-      - name: Run the suite in standalone mode
-        shell: bash
-        run: tools/ci/bench-standalone.sh
-
-      - name: Run the suite with JMH
-        shell: bash
-        run: tools/ci/bench-jmh.sh
-
-
-  windows-legacy:
-    needs: windows
-    strategy:
-      matrix:
-        java: [ '8', '11' ]
-    runs-on: windows-latest
-    continue-on-error: true
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v4
+      - name: Cache Coursier cache
+        uses: actions/cache@v3
         with:
-          fetch-depth: 0
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          path: .cache/coursier
 
-      - name: Fix Git safe directory
+      - name: Start SBT server
         shell: bash
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Setup correct Java version
-        uses: actions/setup-java@v3
-        with:
-          distribution: adopt
-          java-version: ${{ matrix.java }}
-
-      - name: Environment configuration
-        shell: bash
-        run: tools/ci/pre-show-env.sh
-
-      - name: Build both base & JMH bundles
-        shell: bash
-        run: tools/sbt/bin/sbt --batch 'renaissance/package;renaissanceJmh/package'
-
-      - name: Check JMH bundle
-        shell: bash
-        run: tools/ci/check-jmh.sh
-
-      - name: Dummy run and environment configuration
-        shell: bash
-        run: tools/ci/bench-show-env.sh
-
-      - name: Run the suite
-        shell: bash
-        run: tools/ci/bench-base.sh
-
-      - name: Run the suite in standalone mode
-        shell: bash
-        run: tools/ci/bench-standalone.sh
-
-      - name: Run the suite with JMH
-        shell: bash
-        run: tools/ci/bench-jmh.sh
-
-  macos-legacy:
-    needs: macos
-    strategy:
-      matrix:
-        java: [ '8', '11' ]
-    runs-on: macos-latest
-    continue-on-error: true
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fix Git safe directory
-        shell: bash
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
-      - name: Setup correct Java version
-        uses: actions/setup-java@v3
-        with:
-          distribution: adopt
-          java-version: ${{ matrix.java }}
-
-      - name: Environment configuration
-        shell: bash
-        run: tools/ci/pre-show-env.sh
-
-      - name: Build both base & JMH bundles
-        shell: bash
-        run: tools/ci/build-both.sh
-
-      - name: Check JMH bundle
-        shell: bash
-        run: tools/ci/check-jmh.sh
-
-      - name: Dummy run and environment configuration
-        shell: bash
-        run: tools/ci/bench-show-env.sh
-
-      - name: Run the suite
-        shell: bash
-        run: tools/ci/bench-base.sh
-
-      - name: Run the suite in standalone mode
-        shell: bash
-        run: tools/ci/bench-standalone.sh
-
-      - name: Run the suite with JMH
-        shell: bash
-        run: tools/ci/bench-jmh.sh
+        run: tools/ci/sbt-server-start.sh
