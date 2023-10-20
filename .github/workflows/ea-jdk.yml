@@ -1,11 +1,11 @@
 name: EA JDK
 on: workflow_dispatch
+env:
+  COURSIER_CACHE: ${{ github.workspace }}/.cache/coursier
 jobs:
   linux-ea:
     runs-on: ubuntu-latest
     container: "ghcr.io/renaissance-benchmarks/renaissance-buildenv:v7-openjdk22-ea"
-    env:
-      COURSIER_CACHE: ${{ github.workspace }}/.cache/coursier
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
