@@ -22,7 +22,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Check file encoding
@@ -62,7 +63,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build both base & JMH bundles
@@ -116,7 +118,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build both base & JMH bundles
@@ -174,7 +177,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build both base & JMH bundles
@@ -222,7 +226,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build base
@@ -266,7 +271,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build base & JMH bundles
@@ -320,7 +326,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build both base & JMH bundles
@@ -377,7 +384,8 @@ jobs:
       - name: Coursier downloads cache
         uses: actions/cache@v3
         with:
-          key: coursier_cache-${{ runner.os }}-${{ hashFiles('build.sbt') }}
+          enableCrossOsArchive: true
+          key: coursier_cache-${{ hashFiles('build.sbt') }}
           path: ${{ env.COURSIER_CACHE }}
 
       - name: Build both base & JMH bundles
